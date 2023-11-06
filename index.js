@@ -40,6 +40,15 @@ async function run() {
 
 
 
+    //get assignments
+    app.get('/api/v1/assignments', async (req, res) => {
+      const cursor = assignmentCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+
+
 
     //create or post assignments
     app.post('/api/v1/assignments', async (req, res) => {
