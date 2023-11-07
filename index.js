@@ -3,7 +3,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -80,6 +80,25 @@ async function run() {
       const result = await submittedAssignmentCollection.insertOne(submission);
       res.send(result);
 
+    })
+
+    // patch for submitted assignments
+    app.patch('/api/v1/submissions/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = {
+        _id: new ObjectId(id)
+      }
+      const evaluationAssignment = req.body;
+      console.log(evaluationAssignment);
+      const updatedStatus = {
+        $set: {
+          status: evaluationAssignment.status,
+          obtainedMarks: evaluationAssignment.obtainedMarks,
+          feedback: evaluationAssignment.feedback
+        }
+      }
+      const result = await submittedAssignmentCollection.updateOne(filter, updatedStatus)
+      res.send(result);
     })
 
 
