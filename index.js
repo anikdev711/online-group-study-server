@@ -48,9 +48,6 @@ async function run() {
       res.send(result);
     })
 
-
-
-
     //create or post assignments
     app.post('/api/v1/assignments', async (req, res) => {
       const assignment = req.body;
@@ -58,6 +55,29 @@ async function run() {
       const result = await assignmentCollection.insertOne(assignment);
       res.send(result);
     })
+
+    //update assignment
+    app.put('/api/v1/assignments/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = {
+        _id: new ObjectId(id)
+      }
+      const updateAssignments = req.body;
+      const updatedFields = {
+        $set: {
+          title: updateAssignments.title,
+          thumbnailImageURL: updateAssignments.thumbnailImageURL,
+          difficulty: updateAssignments.difficulty,
+          marks: updateAssignments.marks,
+          dueDate: updateAssignments.dueDate,
+          userEmail: updateAssignments.userEmail,
+          description: updateAssignments.description
+        }
+      }
+      const result = await assignmentCollection.updateOne(filter, updatedFields);
+      res.send(result);
+    })
+
 
 
 
