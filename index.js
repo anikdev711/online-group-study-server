@@ -35,6 +35,7 @@ async function run() {
 
     const assignmentCollection = client.db('groupStudy').collection('assignments');
     const userCollection = client.db('groupStudy').collection('users');
+    const submittedAssignmentCollection = client.db('groupStudy').collection('submissions');
 
 
 
@@ -56,6 +57,20 @@ async function run() {
       console.log(assignment);
       const result = await assignmentCollection.insertOne(assignment);
       res.send(result);
+    })
+
+
+
+
+    //submission related
+
+    //post submission assignment
+    app.post('/api/v1/submissions', async (req, res) => {
+      const submission = req.body;
+      console.log(submission);
+      const result = await submittedAssignmentCollection.insertOne(submission);
+      res.send(result);
+
     })
 
 
