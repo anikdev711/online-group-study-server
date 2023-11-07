@@ -4,13 +4,21 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser')
 const app = express();
 const port = process.env.PORT || 5000;
 
 
 //middlewares
-app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
+app.use(cors({
+  origin: [
+    'http://localhost:5173'
+  ],
+  credentials: true
+}));
 
 
 
@@ -38,6 +46,25 @@ async function run() {
     const submittedAssignmentCollection = client.db('groupStudy').collection('submissions');
 
 
+    //verify token middleware
+    const verifyUserForAssignment = (req, res, next) => {
+      const { token } = req.cookies
+      console.log(token);
+      if (!token) {
+        return res.status(401).send({ message: "you are not authorized" });
+      }
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(403).send({ message: "forbidden" })
+        }
+        req.user = decoded;
+        next();
+      })
+    }
+
+
+
+
 
 
 
@@ -49,7 +76,7 @@ async function run() {
     })
 
     //create or post assignments
-    app.post('/api/v1/assignments', async (req, res) => {
+    app.post('/api/v1/assignments', verifyUserForAssignment, async (req, res) => {
       const assignment = req.body;
       console.log(assignment);
       const result = await assignmentCollection.insertOne(assignment);
@@ -143,6 +170,19 @@ async function run() {
       console.log(user);
       const result = await userCollection.insertOne(user);
       res.send(result);
+    })
+
+
+    //jwt related
+    app.post('/api/v1/auth/user-token', (req, res) => {
+      const userToken = req.body;
+      const token = jwt.sign(userToken, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+      console.log(token);
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+      }).send({ success: true })
     })
 
 
