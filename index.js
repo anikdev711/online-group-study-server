@@ -64,6 +64,15 @@ async function run() {
 
     //submission related
 
+    //get the submitted assignments
+    app.get('/api/v1/submissions', async (req, res) => {
+      const cursor = submittedAssignmentCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+
+
     //post submission assignment
     app.post('/api/v1/submissions', async (req, res) => {
       const submission = req.body;
