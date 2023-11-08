@@ -76,7 +76,7 @@ async function run() {
     })
 
     //create or post assignments
-    app.post('/api/v1/assignments', verifyUserForAssignment, async (req, res) => {
+    app.post('/api/v1/assignments', async (req, res) => {
       const assignment = req.body;
       console.log(assignment);
       const result = await assignmentCollection.insertOne(assignment);
@@ -121,12 +121,35 @@ async function run() {
 
     //submission related
 
-    //get the submitted assignments
+    // get the submitted assignments
     app.get('/api/v1/submissions', async (req, res) => {
       const cursor = submittedAssignmentCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     })
+
+    //get the specific user submitted assignments
+    // app.get('/api/v1/submissions', verifyUserForAssignment, async (req, res) => {
+    //   // console.log(req);
+    //   if (req?.query?.email !== req?.user?.email) {
+    //     return res.status(403).send({ message: 'forbidden' })
+    //   }
+    //   let query = {}
+    //   if (req?.query?.email) {
+    //     query = {
+    //       email: req?.query?.email
+    //     }
+    //   }
+    //   const result = await submittedAssignmentCollection.find(query).toArray();
+    //   res.send(result);
+    // })
+
+
+    // app.get('/api/v1/submissions', async (req, res) => {
+    //   const cursor = submittedAssignmentCollection.find();
+    //   const result = await cursor.toArray();
+    //   res.send(result);
+    // })
 
 
 
@@ -164,6 +187,13 @@ async function run() {
 
     //user related 
 
+    //get users
+    app.get('/api/v1/users', async(req,res)=>{
+      const cursor = userCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
     //user create
     app.post('/api/v1/users', async (req, res) => {
       const user = req.body;
@@ -174,12 +204,24 @@ async function run() {
 
 
     //jwt related
+    //create token when user login
     app.post('/api/v1/auth/user-token', (req, res) => {
       const userToken = req.body;
       const token = jwt.sign(userToken, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
       console.log(token);
       res.cookie('token', token, {
         httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+      }).send({ success: true })
+    })
+
+    //clear cookie when user logout
+    app.post('/api/v1/auth/logout', (req, res) => {
+      const user = req.body;
+      console.log('User signed out', user);
+      res.clearCookie('token', {
+        maxAge: 0,
         secure: true,
         sameSite: 'none'
       }).send({ success: true })
