@@ -17,7 +17,8 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'https://online-study-group-auth.web.app',
-    'https://online-study-group-auth.firebaseapp.com'
+    'https://online-study-group-auth.firebaseapp.com',
+    'https://654bb42759d2f97efc378f53--thunderous-mermaid-a2d059.netlify.app'
   ],
   credentials: true
 }));
