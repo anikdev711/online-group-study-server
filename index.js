@@ -15,7 +15,9 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
   origin: [
-    'http://localhost:5173'
+    'http://localhost:5173',
+    'https://online-study-group-auth.web.app',
+    'https://online-study-group-auth.firebaseapp.com'
   ],
   credentials: true
 }));
@@ -37,7 +39,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     //create collections
 
@@ -64,16 +66,44 @@ async function run() {
 
 
 
-
-
-
+    //get assignments
+    // app.get('/api/v1/assignments', async (req, res) => {
+    //   const cursor = assignmentCollection.find();
+    //   const result = await cursor.toArray();
+    //   res.send(result);
+    // })
 
     //get assignments
+    //filtering
+    //query: /api/v1/assignments?difficulty=Easy
+    //query: /api/v1/assignments?difficulty=Medium
+    //query: /api/v1/assignments?difficulty=Hard
+
+    //pagination
+    ///api/v1/assignments?page=1&limit=6
+
     app.get('/api/v1/assignments', async (req, res) => {
-      const cursor = assignmentCollection.find();
+      let queryDifficultyObject = {};
+      const assignmentDifficulty = req.query.difficulty;
+      const page = Number(req.query.page);
+      const limit = Number(req.query.limit);
+      const skip = (page - 1) * limit;
+
+      if (assignmentDifficulty) {
+        queryDifficultyObject.difficulty = assignmentDifficulty;
+
+      }
+
+      const cursor = assignmentCollection.find(queryDifficultyObject).skip(skip).limit(limit);
       const result = await cursor.toArray();
-      res.send(result);
+      const total = await assignmentCollection.countDocuments();
+      res.send({
+        total,
+        result
+      })
+
     })
+
 
     //create or post assignments
     app.post('/api/v1/assignments', async (req, res) => {
@@ -188,7 +218,7 @@ async function run() {
     //user related 
 
     //get users
-    app.get('/api/v1/users', async(req,res)=>{
+    app.get('/api/v1/users', async (req, res) => {
       const cursor = userCollection.find();
       const result = await cursor.toArray();
       res.send(result);
@@ -240,7 +270,7 @@ async function run() {
 
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
